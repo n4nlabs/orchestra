@@ -4,10 +4,10 @@ on:
   workflow_call:
     outputs:
       published:
-        description: 'true se uma versão nova foi publicada'
+        description: 'true if a new version was published'
         value: ${{ jobs.release.outputs.published }}
       tag:
-        description: 'Tag da versão publicada (ex: v1.2.3)'
+        description: 'Tag of the published version (e.g. v1.2.3)'
         value: ${{ jobs.release.outputs.tag }}
 
 jobs:
@@ -19,7 +19,7 @@ jobs:
       published: ${{ steps.semantic.outputs.published }}
       tag: ${{ steps.semantic.outputs.tag }}
     steps:
-      - name: Gerar token da GitHub App
+      - name: Generate GitHub App token
         id: app-token
         uses: actions/create-github-app-token@v3
         with:
@@ -52,8 +52,8 @@ jobs:
           if [ -n "$AFTER" ] && [ "$AFTER" != "$BEFORE" ]; then
             echo "published=true" >> "$GITHUB_OUTPUT"
             echo "tag=$AFTER" >> "$GITHUB_OUTPUT"
-            echo "Release publicada: $AFTER"
+            echo "Release published: $AFTER"
           else
             echo "published=false" >> "$GITHUB_OUTPUT"
-            echo "Nenhuma versão nova — build será pulado."
+            echo "No new version, skipping build."
           fi

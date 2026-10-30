@@ -1,4 +1,4 @@
-name: Publicar no R2
+name: Publish to R2
 
 on:
   workflow_call:
@@ -11,16 +11,16 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - name: Baixar artefatos do build
+      - name: Download build artifacts
         uses: actions/download-artifact@v8
         with:
           name: orchestra-windows
           path: dist
 
-      - name: Conferir arquivos
+      - name: Check files
         run: ls -la dist
 
-      - name: Enviar para o R2
+      - name: Upload to R2
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
@@ -35,19 +35,19 @@ jobs:
           DEST="s3://${R2_BUCKET}/${R2_PREFIX}"
 
           for f in dist/*-setup.exe dist/*-setup.exe.sig; do
-            echo "Enviando $(basename "$f")"
+            echo "Uploading $(basename "$f")"
             aws s3 cp "$f" "$DEST/$(basename "$f")" \
               --endpoint-url "$R2_ENDPOINT" \
               --cache-control "public, max-age=31536000, immutable"
           done
 
-          echo "Enviando latest.json"
+          echo "Uploading latest.json"
           aws s3 cp dist/latest.json "$DEST/latest.json" \
             --endpoint-url "$R2_ENDPOINT" \
             --cache-control "no-cache, max-age=0" \
             --content-type "application/json"
 
-      - name: Verificar latest.json público
+      - name: Verify public latest.json
         env:
           TAG: ${{ inputs.tag }}
           PUBLIC_URL: ${{ vars.R2_PUBLIC_URL }}/releases
@@ -56,5 +56,5 @@ jobs:
           sleep 5
           curl --fail --silent --show-error "$PUBLIC_URL/latest.json?t=$(date +%s)" | tee latest.remote.json
           grep -q "\"version\": \"${TAG#v}\"" latest.remote.json \
-            || { echo "::error::latest.json público não está na versão ${TAG#v}"; exit 1; }
-          echo "Publicado: ${TAG}"
+            || { echo "::error::public latest.json is not at version ${TAG#v}"; exit 1; }
+          echo "Published: ${TAG}"

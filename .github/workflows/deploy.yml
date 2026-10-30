@@ -1,4 +1,4 @@
-name: Release e Build do Orchestra
+name: Orchestra Release and Build
 
 on:
   push:
