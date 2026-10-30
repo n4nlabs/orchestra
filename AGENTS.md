@@ -70,8 +70,12 @@ Push to `main` → `deploy.yml`:
    `chore(release)` commit + tag). Pushes with the org GitHub App token (`APP_ID` / `APP_PRIVATE_KEY`).
 2. `build.yml` (windows, on the tag): checks the version, runs `npm run build` with the signing key and builds
    `latest.json` (notes taken from the release commit body).
-3. `publish.yml` (ubuntu): uploads the installer, `.sig` and `latest.json` to `releases/` on R2 and verifies the
-   public `latest.json`.
+3. `publish.yml` (ubuntu): uploads the installer, `.sig` and `latest.json` to `releases/` on R2 (`latest.json` last,
+   so users never see a partial release), verifies the public `latest.json` and only then creates the GitHub release
+   with the installer attached. semantic-release itself only creates the tag.
+4. `rollback` job in `deploy.yml`: if build or publish fails (or is cancelled) and the version is not live in
+   `latest.json`, it deletes the tag and the GitHub release so the same version is released on the next push to
+   `main` (or a re-run). It never reverts commits or touches R2.
 
 Variables: `vars.R2_PUBLIC_URL` (`https://r2.orchestra.n4nlabs.com`), `vars.R2_BUCKET`. Secrets: `APP_ID`,
 `APP_PRIVATE_KEY`, `CLOUDFLARE_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`,

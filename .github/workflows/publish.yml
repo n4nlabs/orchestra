@@ -58,3 +58,16 @@ jobs:
           grep -q "\"version\": \"${TAG#v}\"" latest.remote.json \
             || { echo "::error::public latest.json is not at version ${TAG#v}"; exit 1; }
           echo "Published: ${TAG}"
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          jq -r '.notes' dist/latest.json > notes.md
+          gh release create "$TAG" dist/*-setup.exe dist/*-setup.exe.sig \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "$TAG" \
+            --notes-file notes.md \
+            --verify-tag
