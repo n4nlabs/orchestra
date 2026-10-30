@@ -3,7 +3,7 @@
 	"version": "1.0.0",
 	"private": true,
 	"scripts": {
-		"dev": "call C:\\dev\\tools\\portable-msvc\\msvc\\setup_x64.bat && tauri dev",
+		"dev": "tauri dev",
 		"build": "tauri build",
 		"lint": "biome check .",
 		"lint:fix": "biome check --write .",

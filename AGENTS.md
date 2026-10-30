@@ -9,13 +9,14 @@ Gemini CLI, etc.). Tool-specific files such as `CLAUDE.md` only point here; edit
 
 ```
 npm install
-npm run dev        # app in dev mode (calls the portable MSVC setup in C:\dev\tools\portable-msvc)
+npm run dev        # app in dev mode
 npm run build      # tauri build: produces the NSIS installer in src-tauri/target/release/bundle/nsis/
 npm run lint       # Biome (this is what CI runs)
 npm run lint:fix   # fix and format
 ```
 
-`npm run build` needs MSVC in the environment (Visual Studio Build Tools or the portable setup) and, to sign the
+`npm run dev` and `npm run build` expect the Rust toolchain and MSVC (Visual Studio Build Tools) to be already
+installed and available in the environment. To sign the
 updater artifacts, the `TAURI_SIGNING_PRIVATE_KEY` and `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` variables.
 To check only the Rust code: `cargo check` inside `src-tauri/`.
 
