@@ -10,14 +10,14 @@ Gemini CLI, etc.). Tool-specific files such as `CLAUDE.md` only point here; edit
 ```
 npm install
 npm run dev        # app in dev mode
-npm run build      # tauri build: produces the NSIS installer in src-tauri/target/release/bundle/nsis/
+npm run build      # tauri build: builds only the app (src-tauri/target/release/orchestra.exe)
 npm run lint       # Biome (this is what CI runs)
 npm run lint:fix   # fix and format
 ```
 
 `npm run dev` and `npm run build` expect the Rust toolchain and MSVC (Visual Studio Build Tools) to be already
-installed and available in the environment. To sign the
-updater artifacts, the `TAURI_SIGNING_PRIVATE_KEY` and `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` variables.
+installed and available in the environment. Signing the installer for the updater only happens in CI
+(`TAURI_SIGNING_PRIVATE_KEY` and `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` secrets).
 To check only the Rust code: `cargo check` inside `src-tauri/`.
 
 ## Layout
@@ -25,10 +25,16 @@ To check only the Rust code: `cargo check` inside `src-tauri/`.
 - `src/`: app UI (`index.html`, `app.js`, `i18n.js`, `style.css`). Global scripts, no modules;
   `I18N` and `LANGS` come from `i18n.js` and are used in `app.js`.
 - `src-tauri/`: app backend (`src/main.rs`): service processes, logs, CPU/RAM, settings, updater.
-- Installer: Tauri's default NSIS (`bundle.windows.nsis` in `tauri.conf.json`), per-user, no admin rights,
-  in pt-BR, Spanish and English.
-- `installer/`: an old custom installer (separate Tauri app, `com.orchestra.setup`). It is not used by any
-  npm script or workflow; do not wire it back in without being asked.
+- `installer/`: the custom installer, a separate Tauri app (`com.orchestra.setup`, own `Cargo.lock`, UI in
+  `installer/src/`, texts in pt-BR, es-CO and en-US inside `installer.js`). It embeds the app binary
+  (`installer/src-tauri/payload/orchestra.exe`, copied by the build) and installs per-user, without admin rights.
+  The same exe has three modes: install (default), update (`--update` or the updater's `/UPDATE`) and
+  uninstall (`--uninstall`, used by the `Uninstall.exe` copy it registers in Windows).
+  Do not use Tauri's NSIS/MSI bundles: the app's `bundle.active` is `false` on purpose.
+- npm scripts stay plain (`tauri dev`, `tauri build`, Biome). Do not add build/dev wrapper scripts or helper
+  script files. Packaging the installer happens only in `build.yml`: copy `orchestra.exe` into the payload,
+  `tauri build` inside `installer/`, rename to `Orchestra_<version>_x64-setup.exe` and sign it with
+  `tauri signer sign`.
 - `.github/workflows/`: `ci.yml` (lint + cargo check on PRs to `main`, skipped for Markdown-only changes, also runnable manually) and the release pipeline
   (`deploy.yml` → `release.yml` → `build.yml` → `publish.yml`).
 
@@ -50,7 +56,10 @@ To check only the Rust code: `cargo check` inside `src-tauri/`.
 - `tauri-plugin-updater` plugin, used only from Rust (`check_update` / `install_update`), not via the JS API.
 - Fixed endpoint in `tauri.conf.json`: `https://r2.orchestra.n4nlabs.com/releases/latest.json`.
 - `install_update` downloads, saves the session and stops the services before `update.install()`, because the
-  installer kills the process without going through `RunEvent::Exit`. NSIS runs in `passive` mode and reopens the app.
+  updater exits the process without going through `RunEvent::Exit`. The plugin runs the downloaded custom installer
+  with `/P /UPDATE /R`; `/UPDATE` puts it in update mode: it waits for the app to close, replaces `orchestra.exe`,
+  updates the Windows registration and reopens the app.
+- `latest.json` uses the `windows-x86_64` platform key (the plugin falls back to it when the app was not bundled).
 - The public key is in `tauri.conf.json`. The private key never goes into the repository
   (`TAURI_SIGNING_PRIVATE_KEY` secret in the pipeline).
 - Users can turn off automatic update checks (`autoUpdate` in `settings.json`).
@@ -68,8 +77,8 @@ To check only the Rust code: `cargo check` inside `src-tauri/`.
 Push to `main` → `deploy.yml`:
 1. `release.yml` (ubuntu): lint and semantic-release (`.releaserc`: version in `package.json`, no npm publish,
    `chore(release)` commit + tag). Pushes with the org GitHub App token (`APP_ID` / `APP_PRIVATE_KEY`).
-2. `build.yml` (windows, on the tag): checks the version, runs `npm run build` with the signing key and builds
-   `latest.json` (notes taken from the release commit body).
+2. `build.yml` (windows, on the tag): checks the version, builds the app (`npm run build`), builds the custom
+   installer with the app embedded, signs it and builds `latest.json` (notes taken from the release commit body).
 3. `publish.yml` (ubuntu): uploads the installer, `.sig` and `latest.json` to `releases/` on R2 (`latest.json` last,
    so users never see a partial release), verifies the public `latest.json` and only then creates the GitHub release
    with the installer attached. semantic-release itself only creates the tag.

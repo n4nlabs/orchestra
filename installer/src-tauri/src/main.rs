@@ -92,7 +92,7 @@ fn arg_value(flag: &str) -> Option<String> {
 fn mode() -> &'static str {
     if has_flag("--uninstall") {
         "uninstall"
-    } else if has_flag("--update") {
+    } else if has_flag("--update") || has_flag("/UPDATE") {
         "update"
     } else {
         "install"

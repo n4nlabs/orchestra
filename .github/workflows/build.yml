@@ -40,7 +40,9 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
         with:
-          workspaces: src-tauri -> target
+          workspaces: |
+            src-tauri -> target
+            installer/src-tauri -> target
 
       - name: Install dependencies
         run: npm ci
@@ -55,19 +57,33 @@ jobs:
             exit 1
           fi
 
+      - name: Build app
+        run: npm run build
+
       - name: Build installer
+        run: |
+          mkdir -p installer/src-tauri/payload
+          cp src-tauri/target/release/orchestra.exe installer/src-tauri/payload/orchestra.exe
+          cd installer
+          npx tauri build
+
+      - name: Sign installer
         env:
+          TAG: ${{ inputs.tag }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-        run: npm run build
+        run: |
+          mkdir -p dist
+          SETUP="dist/Orchestra_${TAG#v}_x64-setup.exe"
+          cp installer/src-tauri/target/release/orchestra-setup.exe "$SETUP"
+          npx tauri signer sign "$SETUP"
+          test -s "$SETUP.sig"
 
       - name: Generate latest.json
         env:
           TAG: ${{ inputs.tag }}
           R2_PUBLIC_URL: ${{ vars.R2_PUBLIC_URL }}
         run: |
-          mkdir -p dist
-          cp src-tauri/target/release/bundle/nsis/*-setup.exe src-tauri/target/release/bundle/nsis/*-setup.exe.sig dist/
           git log -1 --format=%b > dist/notes.md
           node -e '
             const fs = require("node:fs");
