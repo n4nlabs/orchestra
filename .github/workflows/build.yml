@@ -1,4 +1,4 @@
-name: Build do Instalador (Windows)
+name: Build Installer (Windows)
 
 on:
   workflow_call:
@@ -17,12 +17,12 @@ jobs:
       run:
         shell: bash
     steps:
-      - name: Conferir variáveis do repositório
+      - name: Check repository variables
         env:
           R2_PUBLIC_URL: ${{ vars.R2_PUBLIC_URL }}
         run: |
           if [ -z "$R2_PUBLIC_URL" ]; then
-            echo "::error::A variável 'R2_PUBLIC_URL' não está configurada no repositório (Settings > Secrets and variables > Actions > Variables)."
+            echo "::error::Variable 'R2_PUBLIC_URL' is not set in the repository (Settings > Secrets and variables > Actions > Variables)."
             exit 1
           fi
 
@@ -42,26 +42,26 @@ jobs:
         with:
           workspaces: src-tauri -> target
 
-      - name: Instalar dependências
+      - name: Install dependencies
         run: npm ci
 
-      - name: Conferir versão do package.json contra a tag
+      - name: Check package.json version against the tag
         env:
           TAG: ${{ inputs.tag }}
         run: |
           PKG_VERSION="$(node -p "require('./package.json').version")"
           if [ "$PKG_VERSION" != "${TAG#v}" ]; then
-            echo "::error::package.json está em $PKG_VERSION mas a tag é $TAG. O instalador sairia com a versão errada e o auto-update quebraria."
+            echo "::error::package.json is at $PKG_VERSION but the tag is $TAG. The installer would ship with the wrong version and break auto-update."
             exit 1
           fi
 
-      - name: Build do instalador
+      - name: Build installer
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         run: npm run build
 
-      - name: Gerar latest.json
+      - name: Generate latest.json
         env:
           TAG: ${{ inputs.tag }}
           R2_PUBLIC_URL: ${{ vars.R2_PUBLIC_URL }}
@@ -86,10 +86,10 @@ jobs:
             fs.writeFileSync("dist/latest.json", JSON.stringify(manifest, null, 2));
           '
 
-      - name: Listar artefatos gerados
+      - name: List generated artifacts
         run: ls -la dist
 
-      - name: Guardar instalador e manifest
+      - name: Upload installer and manifest
         uses: actions/upload-artifact@v7
         with:
           name: orchestra-windows
