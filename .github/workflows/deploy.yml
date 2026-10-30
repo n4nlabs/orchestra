@@ -32,3 +32,27 @@ jobs:
     with:
       tag: ${{ needs.release.outputs.tag }}
     secrets: inherit
+
+  rollback:
+    needs: [release, build, publish]
+    if: always() && needs.release.outputs.published == 'true' && (needs.build.result != 'success' || needs.publish.result != 'success')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Remove tag and release of the failed version
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.release.outputs.tag }}
+          PUBLIC_URL: ${{ vars.R2_PUBLIC_URL }}/releases
+        run: |
+          set -euo pipefail
+          if curl --fail --silent "$PUBLIC_URL/latest.json?t=$(date +%s)" | grep -q "\"version\": \"${TAG#v}\""; then
+            echo "::warning::${TAG} is already live in latest.json, keeping the tag."
+            exit 0
+          fi
+          gh release delete "$TAG" --repo "$GITHUB_REPOSITORY" --yes 2>/dev/null || true
+          gh api -X DELETE "repos/$GITHUB_REPOSITORY/git/refs/tags/$TAG" 2>/dev/null || true
+          if gh api "repos/$GITHUB_REPOSITORY/git/refs/tags/$TAG" >/dev/null 2>&1; then
+            echo "::error::Could not delete tag ${TAG}."
+            exit 1
+          fi
+          echo "::warning::Release of ${TAG} failed. Tag removed; push to main again to retry."
