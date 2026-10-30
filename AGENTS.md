@@ -28,7 +28,7 @@ To check only the Rust code: `cargo check` inside `src-tauri/`.
   in pt-BR, Spanish and English.
 - `installer/`: an old custom installer (separate Tauri app, `com.orchestra.setup`). It is not used by any
   npm script or workflow; do not wire it back in without being asked.
-- `.github/workflows/`: `ci.yml` (lint + cargo check on PRs and other branches) and the release pipeline
+- `.github/workflows/`: `ci.yml` (lint + cargo check on PRs to `main`, skipped for Markdown-only changes, also runnable manually) and the release pipeline
   (`deploy.yml` → `release.yml` → `build.yml` → `publish.yml`).
 
 ## Conventions
