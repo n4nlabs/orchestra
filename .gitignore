@@ -4,3 +4,5 @@ src-tauri/gen
 installer/src-tauri/payload/orchestra.exe
 installer/src-tauri/target
 installer/src-tauri/gen
+*.key
+*.key.password
