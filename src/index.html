@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Orchestra</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="titlebar" data-tauri-drag-region>
+    <div class="brand" data-tauri-drag-region>
+      <span class="logo" data-tauri-drag-region>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="4" height="12" rx="1.6"/><rect x="10" y="3" width="4" height="18" rx="1.6"/><rect x="17" y="8" width="4" height="9" rx="1.6"/></svg>
+      </span>
+      <span data-tauri-drag-region>Orchestra</span>
+    </div>
+    <div class="grow" data-tauri-drag-region></div>
+    <div class="tb-actions">
+      <button type="button" class="upd-pill" id="btnUpdate" data-act="update" data-i18n="upd.badge" hidden></button>
+      <button type="button" class="tbtn" id="btnTheme" data-act="theme" data-i18n-title="tb.theme"></button>
+      <button type="button" class="tbtn" id="btnSettings" data-act="settings" data-i18n-title="tb.settings"></button>
+    </div>
+    <div class="winctl">
+      <button type="button" id="wMin" data-i18n-title="win.min"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 6h8"/></svg></button>
+      <button type="button" id="wMax" data-i18n-title="win.max"><svg viewBox="0 0 12 12" aria-hidden="true"><rect x="2.5" y="2.5" width="7" height="7" rx="1"/></svg></button>
+      <button type="button" id="wClose" class="close" data-i18n-title="win.close"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 2.5l7 7M9.5 2.5l-7 7"/></svg></button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="search">
+        <span class="s-ic" id="searchIc"></span>
+        <input id="search" type="text" data-i18n-ph="search.ph" placeholder="Buscar serviços" autocomplete="off" spellcheck="false" />
+      </div>
+      <button type="button" class="nav" id="navOverview"><span id="navIc" class="nav-ic"></span><span data-i18n="nav.overview">Visão geral</span></button>
+      <nav class="list" id="list"></nav>
+      <div class="side-foot">
+        <button type="button" class="btn primary block" id="btnNew" data-i18n="btn.new">Novo serviço</button>
+      </div>
+    </aside>
+
+    <main class="main" id="main"></main>
+  </div>
+
+  <div class="modal-back" id="modalBack" hidden>
+    <div class="modal" id="modal" role="dialog" aria-modal="true"></div>
+  </div>
+  <div class="toasts" id="toasts"></div>
+
+  <script src="i18n.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

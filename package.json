@@ -1,0 +1,26 @@
+{
+	"name": "orchestra",
+	"version": "1.0.0",
+	"private": true,
+	"scripts": {
+		"dev": "call C:\\dev\\tools\\portable-msvc\\msvc\\setup_x64.bat && tauri dev",
+		"build": "tauri build",
+		"lint": "biome check .",
+		"lint:fix": "biome check --write .",
+		"format": "biome format --write .",
+		"tauri": "tauri"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.4.8",
+		"@semantic-release/git": "^10.0.1",
+		"@semantic-release/npm": "^13.2.0",
+		"@tauri-apps/cli": "^2",
+		"semantic-release": "^25.0.9"
+	},
+	"description": "Local services manager for Windows (Tauri 2 + Rust)",
+	"author": "N4nLabs",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/n4nlabs/orchestra.git"
+	}
+}

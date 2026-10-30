@@ -1,0 +1,59 @@
+name: Release
+
+on:
+  workflow_call:
+    outputs:
+      published:
+        description: 'true se uma versão nova foi publicada'
+        value: ${{ jobs.release.outputs.published }}
+      tag:
+        description: 'Tag da versão publicada (ex: v1.2.3)'
+        value: ${{ jobs.release.outputs.tag }}
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      published: ${{ steps.semantic.outputs.published }}
+      tag: ${{ steps.semantic.outputs.tag }}
+    steps:
+      - name: Gerar token da GitHub App
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          token: ${{ steps.app-token.outputs.token }}
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run lint
+
+      - name: Release
+        id: semantic
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          BEFORE="$(git tag --list --sort=-creatordate | head -n1)"
+          npx semantic-release
+          AFTER="$(git tag --list --sort=-creatordate | head -n1)"
+          if [ -n "$AFTER" ] && [ "$AFTER" != "$BEFORE" ]; then
+            echo "published=true" >> "$GITHUB_OUTPUT"
+            echo "tag=$AFTER" >> "$GITHUB_OUTPUT"
+            echo "Release publicada: $AFTER"
+          else
+            echo "published=false" >> "$GITHUB_OUTPUT"
+            echo "Nenhuma versão nova — build será pulado."
+          fi

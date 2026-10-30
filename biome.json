@@ -1,0 +1,89 @@
+{
+	"$schema": "https://biomejs.dev/schemas/2.4.8/schema.json",
+	"vcs": {
+		"enabled": false,
+		"clientKind": "git",
+		"useIgnoreFile": false
+	},
+	"files": {
+		"ignoreUnknown": false,
+		"includes": [
+			"**",
+			"!node_modules",
+			"!**/src-tauri",
+			"!package-lock.json",
+			"!.next",
+			"!dist",
+			"!build",
+			"!.claude",
+			"!.agents",
+			"!skills-lock.json"
+		]
+	},
+	"formatter": {
+		"enabled": true,
+		"indentStyle": "tab",
+		"indentWidth": 4,
+		"lineWidth": 120
+	},
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"recommended": true,
+			"nursery": {
+				"useSortedClasses": {
+					"level": "error",
+					"fix": "safe"
+				}
+			},
+			"style": {
+				"useBlockStatements": "error",
+				"noCommonJs": "error"
+			},
+			"suspicious": {
+				"noUnknownAtRules": "off"
+			}
+		}
+	},
+	"javascript": {
+		"formatter": {
+			"quoteStyle": "double",
+			"semicolons": "always",
+			"arrowParentheses": "always"
+		},
+		"globals": ["I18N", "LANGS"]
+	},
+	"assist": {
+		"actions": {
+			"source": {
+				"organizeImports": "on",
+				"useSortedAttributes": "on"
+			}
+		}
+	},
+	"overrides": [
+		{
+			"includes": ["src/i18n.js"],
+			"linter": {
+				"rules": {
+					"correctness": {
+						"noUnusedVariables": "off"
+					}
+				}
+			}
+		},
+		{
+			"includes": ["**/*.css"],
+			"linter": {
+				"rules": {
+					"complexity": {
+						"noImportantStyles": "off"
+					},
+					"style": {
+						"noDescendingSpecificity": "off"
+					}
+				}
+			}
+		}
+	]
+}
